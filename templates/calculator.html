@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор - HTML версія</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .calculator-title {
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .display {
+            width: 100%;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 24px;
+            text-align: right;
+            padding: 0 20px;
+            margin-bottom: 20px;
+            outline: none;
+            font-family: 'Courier New', monospace;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .btn {
+            height: 60px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-number {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        .btn-number:hover {
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .btn-operator {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .btn-operator:hover {
+            background: linear-gradient(135deg, #ff5252, #e53e3e);
+        }
+
+        .btn-function {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .btn-function:hover {
+            background: linear-gradient(135deg, #26d0ce, #2eb398);
+        }
+
+        .btn-equals {
+            background: linear-gradient(135deg, #a8e6cf, #7fcdcd);
+            color: #333;
+            font-size: 20px;
+        }
+
+        .btn-equals:hover {
+            background: linear-gradient(135deg, #88d8a3, #52c4c4);
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #ffa726, #ff7043);
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: linear-gradient(135deg, #ff9800, #ff5722);
+        }
+
+        .btn-zero {
+            grid-column: span 2;
+        }
+
+        .history {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .history-title {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .history-item {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            margin-bottom: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .error {
+            color: #ff6b6b !important;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .calculator {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .btn {
+                height: 50px;
+                font-size: 16px;
+            }
+            
+            .display {
+                height: 60px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1 class="calculator-title">🧮 Калькулятор</h1>
+        
+        <input type="text" class="display" id="display" readonly value="0">
+        
+        <div class="buttons">
+            <!-- Ряд 1 -->
+            <button class="btn btn-clear" onclick="clearAll()">C</button>
+            <button class="btn btn-function" onclick="clearEntry()">CE</button>
+            <button class="btn btn-function" onclick="backspace()">⌫</button>
+            <button class="btn btn-operator" onclick="appendOperator('/')">÷</button>
+            
+            <!-- Ряд 2 -->
+            <button class="btn btn-number" onclick="appendNumber('7')">7</button>
+            <button class="btn btn-number" onclick="appendNumber('8')">8</button>
+            <button class="btn btn-number" onclick="appendNumber('9')">9</button>
+            <button class="btn btn-operator" onclick="appendOperator('*')">×</button>
+            
+            <!-- Ряд 3 -->
+            <button class="btn btn-number" onclick="appendNumber('4')">4</button>
+            <button class="btn btn-number" onclick="appendNumber('5')">5</button>
+            <button class="btn btn-number" onclick="appendNumber('6')">6</button>
+            <button class="btn btn-operator" onclick="appendOperator('-')">−</button>
+            
+            <!-- Ряд 4 -->
+            <button class="btn btn-number" onclick="appendNumber('1')">1</button>
+            <button class="btn btn-number" onclick="appendNumber('2')">2</button>
+            <button class="btn btn-number" onclick="appendNumber('3')">3</button>
+            <button class="btn btn-operator" onclick="appendOperator('+')">+</button>
+            
+            <!-- Ряд 5 -->
+            <button class="btn btn-number btn-zero" onclick="appendNumber('0')">0</button>
+            <button class="btn btn-number" onclick="appendNumber('.')">.</button>
+            <button class="btn btn-equals" onclick="calculate()">=</button>
+            
+            <!-- Додаткові функції -->
+            <button class="btn btn-function" onclick="calculateSquareRoot()">√</button>
+            <button class="btn btn-function" onclick="calculateSquare()">x²</button>
+            <button class="btn btn-function" onclick="calculatePercent()">%</button>
+            <button class="btn btn-function" onclick="toggleSign()">±</button>
+        </div>
+        
+        <div class="history">
+            <div class="history-title">📜 Історія обчислень</div>
+            <div id="history-content"></div>
+        </div>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let currentInput = '0';
+        let shouldResetDisplay = false;
+        let history = [];
+
+        // Додавання чисел
+        function appendNumber(number) {
+            addRippleEffect(event.target);
+            
+            if (shouldResetDisplay || currentInput === '0') {
+                currentInput = number;
+                shouldResetDisplay = false;
+            } else {
+                currentInput += number;
+            }
+            updateDisplay();
+        }
+
+        // Додавання операторів
+        function appendOperator(operator) {
+            addRippleEffect(event.target);
+            
+            if (currentInput === '' || currentInput === '0') {
+                return;
+            }
+            
+            // Замінюємо символи для відображення
+            let displayOperator = operator;
+            if (operator === '*') displayOperator = '×';
+            if (operator === '/') displayOperator = '÷';
+            if (operator === '-') displayOperator = '−';
+            
+            if (!shouldResetDisplay && !isOperator(currentInput.slice(-1))) {
+                currentInput += operator;
+            } else if (isOperator(currentInput.slice(-1))) {
+                // Замінюємо останній оператор
+                currentInput = currentInput.slice(0, -1) + operator;
+            }
+            
+            updateDisplay();
+        }
+
+        // Перевірка чи є символ оператором
+        function isOperator(char) {
+            return ['+', '-', '*', '/', '×', '÷', '−'].includes(char);
+        }
+
+        // Обчислення результату
+        function calculate() {
+            addRippleEffect(event.target);
+            
+            try {
+                // Підготовка виразу для обчислення
+                let expression = currentInput
+                    .replace(/×/g, '*')
+                    .replace(/÷/g, '/')
+                    .replace(/−/g, '-');
+                
+                // Перевірка на безпечність
+                if (!/^[0-9+\-*/.() ]+$/.test(expression)) {
+                    throw new Error('Неприпустимі символи');
+                }
+                
+                let result = eval(expression);
+                
+                if (!isFinite(result)) {
+                    throw new Error('Математична помилка');
+                }
+                
+                // Додаємо до історії
+                addToHistory(`${currentInput} = ${result}`);
+                
+                currentInput = result.toString();
+                shouldResetDisplay = true;
+                updateDisplay();
+                
+            } catch (error) {
+                showError('Помилка');
+                setTimeout(() => {
+                    clearAll();
+                }, 1500);
+            }
+        }
+
+        // Квадратний корінь
+        function calculateSquareRoot() {
+            addRippleEffect(event.target);
+            
+            try {
+                let number = parseFloat(currentInput);
+                if (number < 0) {
+                    throw new Error('Від\'ємне число');
+                }
+                
+                let result = Math.sqrt(number);
+                addToHistory(`√${number} = ${result}`);
+                
+                currentInput = result.toString();
+                shouldResetDisplay = true;
+                updateDisplay();
+                
+            } catch (error) {
+                showError('Помилка');
+            }
+        }
+
+        // Піднесення до квадрату
+        function calculateSquare() {
+            addRippleEffect(event.target);
+            
+            try {
+                let number = parseFloat(currentInput);
+                let result = number * number;
+                
+                addToHistory(`${number}² = ${result}`);
+                
+                currentInput = result.toString();
+                shouldResetDisplay = true;
+                updateDisplay();
+                
+            } catch (error) {
+                showError('Помилка');
+            }
+        }
+
+        // Відсоток
+        function calculatePercent() {
+            addRippleEffect(event.target);
+            
+            try {
+                let number = parseFloat(currentInput);
+                let result = number / 100;
+                
+                addToHistory(`${number}% = ${result}`);
+                
+                currentInput = result.toString();
+                shouldResetDisplay = true;
+                updateDisplay();
+                
+            } catch (error) {
+                showError('Помилка');
+            }
+        }
+
+        // Зміна знаку
+        function toggleSign() {
+            addRippleEffect(event.target);
+            
+            if (currentInput !== '0') {
+                if (currentInput.startsWith('-')) {
+                    currentInput = currentInput.substring(1);
+                } else {
+                    currentInput = '-' + currentInput;
+                }
+                updateDisplay();
+            }
+        }
+
+        // Очищення всього
+        function clearAll() {
+            addRippleEffect(event.target);
+            currentInput = '0';
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        // Очищення поточного введення
+        function clearEntry() {
+            addRippleEffect(event.target);
+            currentInput = '0';
+            updateDisplay();
+        }
+
+        // Видалення останнього символу
+        function backspace() {
+            addRippleEffect(event.target);
+            
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        // Оновлення дисплею
+        function updateDisplay() {
+            // Форматування для відображення
+            let displayValue = currentInput
+                .replace(/\*/g, '×')
+                .replace(/\//g, '÷')
+                .replace(/-/g, '−');
+            
+            display.value = displayValue;
+            display.classList.remove('error');
+        }
+
+        // Показ помилки
+        function showError(message) {
+            display.value = message;
+            display.classList.add('error');
+        }
+
+        // Додавання до історії
+        function addToHistory(calculation) {
+            history.unshift(calculation);
+            if (history.length > 10) {
+                history.pop();
+            }
+            updateHistoryDisplay();
+        }
+
+        // Оновлення відображення історії
+        function updateHistoryDisplay() {
+            const historyContent = document.getElementById('history-content');
+            historyContent.innerHTML = '';
+            
+            history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.textContent = item;
+                historyContent.appendChild(historyItem);
+            });
+        }
+
+        // Додавання ефекту хвилі для кнопок
+        function addRippleEffect(button) {
+            const ripple = document.createElement('span');
+            const rect = button.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.classList.add('ripple');
+            
+            button.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
+        // Підтримка клавіатури
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            // Цифри
+            if (key >= '0' && key <= '9') {
+                appendNumber(key);
+            }
+            // Оператори
+            else if (key === '+') {
+                appendOperator('+');
+            }
+            else if (key === '-') {
+                appendOperator('-');
+            }
+            else if (key === '*') {
+                appendOperator('*');
+            }
+            else if (key === '/') {
+                event.preventDefault();
+                appendOperator('/');
+            }
+            // Інші клавіші
+            else if (key === '.') {
+                appendNumber('.');
+            }
+            else if (key === 'Enter' || key === '=') {
+                calculate();
+            }
+            else if (key === 'Escape' || key === 'c' || key === 'C') {
+                clearAll();
+            }
+            else if (key === 'Backspace') {
+                backspace();
+            }
+        });
+
+        // Ініціалізація
+        updateDisplay();
+    </script>
+</body>
+</html>
